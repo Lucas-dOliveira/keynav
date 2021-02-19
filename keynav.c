@@ -1415,13 +1415,6 @@ void update() {
 
   //printf("move: %d, clip: %d, draw: %d, resize: %d\n", move, clip, draw, resize);
 
-  //clip = 0;
-  if (((clip || draw) + (move || resize)) > 1) {
-    /* more than one action to perform, unmap to hide move/draws
-     * to reduce flickering */
-    XUnmapWindow(dpy, zone);
-  }
-
   if (clip || draw) {
     updategrid(zone, &wininfo, clip, draw);
 
@@ -1440,14 +1433,7 @@ void update() {
 
 
   if (resize && move) {
-    //printf("=> %ld: %dx%d @ %d,%d\n", zone, wininfo.w, wininfo.h, wininfo.x,
-           //wininfo.y);
     XMoveResizeWindow(dpy, zone, wininfo.x, wininfo.y, wininfo.w, wininfo.h);
-
-    /* Under Gnome3/GnomeShell, it seems to ignore this move+resize request
-     * unless we sync and sleep here. Sigh. Gnome is retarded. */
-    XSync(dpy, 0);
-    usleep(5000);
   } else if (resize) {
     XResizeWindow(dpy, zone, wininfo.w, wininfo.h);
   } else if (move) {
@@ -1455,6 +1441,8 @@ void update() {
   }
 
   XMapRaised(dpy, zone);
+  XSync(dpy, 0);
+  usleep(5000);
 }
 
 void correct_overflow() {
